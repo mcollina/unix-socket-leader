@@ -9,6 +9,12 @@ function testName () {
   return './testing-' + process.pid + '-' + count++
 }
 
+function noError (t) {
+  return function (err) {
+    t.error(err, 'no error')
+  }
+}
+
 test('single instance', function (t) {
   t.plan(4)
 
@@ -31,13 +37,13 @@ test('single instance', function (t) {
     t.ok(elected, 'a leader was elected first')
     sock.pipe(split()).on('data', function (line) {
       t.equal(line, 'hello world')
-      instance.close(t.error.bind(t))
+      instance.close(noError(t))
     })
   })
 })
 
 test('two instances', function (t) {
-  t.plan(4)
+  t.plan(6)
 
   var name = testName()
 
@@ -58,9 +64,9 @@ test('two instances', function (t) {
         })
         instance2.once('client', function (sock) {
           t.pass('second leader connect to itself')
-          instance2.close()
+          instance2.close(noError(t))
         })
-        instance1.close()
+        instance1.close(noError(t))
       })
     })
   })
