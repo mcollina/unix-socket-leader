@@ -5,10 +5,12 @@ var fs = require('fs')
 var path = require('path')
 var EE = require('events').EventEmitter
 var eos = require('end-of-stream')
+var lockfile = require('pidlockfile')
 
 function leader (file) {
   var that = new EE()
   var sockPath = path.resolve(process.cwd(), file)
+  var lock = sockPath + '.lock'
   var client = null
   var server = null
   var sockets = []
@@ -38,7 +40,7 @@ function leader (file) {
       }
 
       if (err.code === 'ECONNREFUSED' || err.code === 'ENOENT') {
-        return setTimeout(startServer, 50 + Math.random() * 100)
+        return setTimeout(unlinkAndStart, 50 + Math.random() * 100)
       }
 
       return that.emit('error', err)
@@ -51,32 +53,43 @@ function leader (file) {
     })
   }
 
-  function startServer () {
-    fs.unlink(sockPath, function () {
-      server = net.createServer(function (sock) {
-        sock.unref()
-        sockets.push(sock)
-        that.emit('connection', sock)
-        eos(sock, function () {
-          sockets.splice(sockets.indexOf(sock), 1)
-        })
+  function unlinkAndStart () {
+    lockfile.lock(lock, function (err) {
+      if (err) {
+        return tryConnect()
+      }
+
+      fs.unlink(sockPath, function () {
+        startServer()
       })
-
-      server.listen(sockPath, function () {
-        that.emit('leader')
-        tryConnect()
-      })
-
-      server.on('error', tryConnect)
-
-      server.unref()
     })
+  }
+
+  function startServer () {
+    server = net.createServer(function (sock) {
+      sock.unref()
+      sockets.push(sock)
+      that.emit('connection', sock)
+      eos(sock, function () {
+        sockets.splice(sockets.indexOf(sock), 1)
+      })
+    })
+
+    server.listen(sockPath, function () {
+      that.emit('leader')
+      tryConnect()
+    })
+
+    server.on('error', tryConnect)
+
+    server.unref()
   }
 
   function close (cb) {
     closed = true
     if (server) {
       fs.unlinkSync(sockPath)
+      fs.unlinkSync(lock)
       sockets.forEach(function (sock) {
         sock.destroy()
       })
