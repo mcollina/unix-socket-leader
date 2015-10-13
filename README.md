@@ -79,6 +79,12 @@ Events:
 * `connection`, emitted when there is a new incoming connection, and
   this instance is the leader; the first argument is the connected socket
 
+-------------------------------------------------------
+<a name="close"></a>
+### instance.close([cb])
+
+Closes the instance, severing all current connections.
+
 ## License
 
 Copyright Matteo Collina 2015, Licensed under [MIT][].
