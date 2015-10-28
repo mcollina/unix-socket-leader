@@ -88,8 +88,12 @@ function leader (file) {
   function close (cb) {
     closed = true
     if (server) {
-      fs.unlinkSync(sockPath)
-      fs.unlinkSync(lock)
+      try {
+        fs.unlinkSync(sockPath)
+        fs.unlinkSync(lock)
+      } catch (err) {
+        // somebody else downloaded the locks
+      }
       sockets.forEach(function (sock) {
         sock.destroy()
       })
