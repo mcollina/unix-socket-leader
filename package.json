@@ -1,6 +1,6 @@
 {
   "name": "unix-socket-leader",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Elect a leader using unix sockets",
   "main": "index.js",
   "scripts": {
