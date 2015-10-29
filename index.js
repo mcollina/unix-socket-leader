@@ -54,6 +54,8 @@ function leader (file) {
   }
 
   function unlinkAndStart () {
+    if (closed) return
+
     lockfile.lock(lock, function (err) {
       if (err) {
         return tryConnect()
@@ -92,7 +94,7 @@ function leader (file) {
         fs.unlinkSync(sockPath)
         fs.unlinkSync(lock)
       } catch (err) {
-        // somebody else downloaded the locks
+        // somebody else unlinked the locks
       }
       sockets.forEach(function (sock) {
         sock.destroy()
