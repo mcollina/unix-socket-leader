@@ -27,4 +27,3 @@ leader.on('connection', function (sock) {
 leader.on('client', function (sock) {
   process.stdout.pipe(sock, popts).pipe(process.stdout, popts)
 })
-
