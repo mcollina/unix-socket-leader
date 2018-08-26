@@ -36,7 +36,7 @@ var sockets = []
 var popts = { end: false }
 
 leader.on('leader', function () {
-  console.log('!! I am the the leader now', process.pid)
+  console.log('!! I am the leader now', process.pid)
 })
 
 leader.on('connection', function (sock) {
